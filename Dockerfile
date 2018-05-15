@@ -5,31 +5,23 @@
 #
 
 # Pull base image.
-FROM jlesage/baseimage-gui:alpine-3.7-v3.3.4
+FROM jlesage/baseimage-gui:ubuntu-16.04
 
 # Define software versions.
-ARG FIREFOX_VERSION=58.0.1-r2
-ARG JSONLZ4_VERSION=c4305b8
-ARG LZ4_VERSION=1.8.1.2
 #ARG PROFILE_CLEANER_VERSION=2.36
 
 # Define software download URLs.
-ARG JSONLZ4_URL=https://github.com/avih/dejsonlz4/archive/${JSONLZ4_VERSION}.tar.gz
-ARG LZ4_URL=https://github.com/lz4/lz4/archive/v${LZ4_VERSION}.tar.gz
+ARG JSONLZ4_URL=http://github.com/avih/dejsonlz4/archive/c4305b8.tar.gz
+ARG LZ4_URL=http://github.com/lz4/lz4/archive/v1.8.1.2.tar.gz
 #ARG PROFILE_CLEANER_URL=https://github.com/graysky2/profile-cleaner/raw/v${PROFILE_CLEANER_VERSION}/common/profile-cleaner.in
 
 # Define working directory.
 WORKDIR /tmp
 
 # Install Firefox.
-RUN \
-    add-pkg --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
-        icu-libs \
-        && \
-    add-pkg --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
-        firefox=${FIREFOX_VERSION} \
-        && \
-    add-pkg \
+RUN     add-pkg firefox \
+        fonts-arphic-uming \
+        fonts-arphic-ukai \
         desktop-file-utils \
         adwaita-icon-theme \
         ttf-dejavu \
@@ -37,35 +29,13 @@ RUN \
         xdotool
 
 # Set default settings.
-RUN \
-    CFG_FILE="$(ls /usr/lib/firefox-*/browser/defaults/preferences/firefox-branding.js)" && \
-    echo '' >> "$CFG_FILE" && \
-    echo '// Default download directory.' >> "$CFG_FILE" && \
-    echo 'pref("browser.download.dir", "/config/downloads");' >> "$CFG_FILE" && \
-    echo 'pref("browser.download.folderList", 2);' >> "$CFG_FILE"
+#RUN \
+#    CFG_FILE="$(ls /usr/lib/firefox-*/browser/defaults/preferences/firefox-branding.js)" && \
+#    echo '' >> "$CFG_FILE" && \
+#    echo '// Default download directory.' >> "$CFG_FILE" && \
+#    echo 'pref("browser.download.dir", "/config/downloads");' >> "$CFG_FILE" && \
+#    echo 'pref("browser.download.folderList", 2);' >> "$CFG_FILE"
 
-# Install JSONLZ4 tools.
-RUN \
-    add-pkg --virtual build-dependencies \
-        curl \
-        build-base \
-        && \
-    mkdir jsonlz4 && \
-    mkdir lz4 && \
-    curl -# -L {$JSONLZ4_URL} | tar xz --strip 1 -C jsonlz4 && \
-    curl -# -L {$LZ4_URL} | tar xz --strip 1 -C lz4 && \
-    mv jsonlz4/src/ref_compress/*.c jsonlz4/src/ && \
-    cp lz4/lib/lz4.* jsonlz4/src/ && \
-    cd jsonlz4 && \
-    gcc -Wall -o dejsonlz4 src/dejsonlz4.c src/lz4.c && \
-    gcc -Wall -o jsonlz4 src/jsonlz4.c src/lz4.c && \
-    strip dejsonlz4 jsonlz4 && \
-    cp -v dejsonlz4 /usr/bin/ && \
-    cp -v jsonlz4 /usr/bin/ && \
-    cd .. && \
-    # Cleanup.
-    del-pkg build-dependencies && \
-    rm -rf /tmp/* /tmp/.[!.]*
 
 # Install profile-cleaner.
 #RUN \
@@ -110,6 +80,8 @@ COPY rootfs/ /
 
 # Set environment variables.
 ENV APP_NAME="Firefox"
+ENV LANG=en_US.UTF-8
+
 
 # Define mountable directories.
 VOLUME ["/config"]
