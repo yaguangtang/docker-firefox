@@ -25,6 +25,8 @@ RUN     add-pkg firefox \
         desktop-file-utils \
         adwaita-icon-theme \
         ttf-dejavu \
+        x264 \
+        pulseaudio \
         # The following package is used to send key presses to the X process.
         xdotool
 
